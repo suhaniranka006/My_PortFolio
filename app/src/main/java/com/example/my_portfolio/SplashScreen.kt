@@ -47,6 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.my_portfolio.ui.theme.DarkPink
+import com.example.my_portfolio.ui.theme.LightPink
+import com.example.my_portfolio.ui.theme.White
 import kotlinx.coroutines.delay
 import java.time.format.TextStyle
 
@@ -95,7 +98,7 @@ fun SplashScreen(navController: NavController) {
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE7A8BD), Color(0xFFDE799B), Color(0xFFD74375))
+                    colors = listOf(White, LightPink,DarkPink)
                 )
             ),
         contentAlignment = Alignment.Center

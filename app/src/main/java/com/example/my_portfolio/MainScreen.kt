@@ -60,9 +60,9 @@ fun MainScreen(navController: NavHostController) {
             NavigationBar(
                 containerColor = DarkPink,
                 modifier = Modifier
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .shadow(8.dp)
+                    .padding(0.dp)
+                    .clip(RoundedCornerShape(0.dp))
+                    .shadow(0.dp)
 
             ) {
                 listOf(BottomNavItem.Home, BottomNavItem.Updates, BottomNavItem.Contact).forEach { item ->
@@ -89,7 +89,7 @@ fun MainScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(DarkPink, White)
+                        colors = listOf(DarkPink, DarkPink)
                     )
                 )
         ) {
