@@ -269,25 +269,11 @@ fun CircularHomeButton(title: String, icon: ImageVector, onClick: () -> Unit) {
 }
 
 
-@Composable
-fun UpdatesTab() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Updates Feed Coming Soon!")
-    }
-}
 
-@Composable
-fun ContactTab() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Contact Info / Resume Download Coming Soon!")
-    }
-}
+
+
+
+
 
 
 
