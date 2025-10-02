@@ -1,11 +1,11 @@
 package com.example.my_portfolio.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -22,14 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.my_portfolio.ui.theme.DarkPink
 import com.example.my_portfolio.ui.theme.LightPink
 import com.example.my_portfolio.ui.theme.White
-import kotlinx.coroutines.delay
 
 // 1. Data model for a skill
 data class Skill(
@@ -74,11 +75,9 @@ val toolsAndPlatforms = listOf(
 )
 
 
-// 3. The Main Screen Composable with Animations
+// 3. The Main Screen Composable (No Entrance Animations)
 @Composable
 fun SkillsScreen() {
-    var animationIndex = 0
-
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(White, LightPink, DarkPink)
     )
@@ -87,7 +86,7 @@ fun SkillsScreen() {
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = backgroundBrush), // New gradient background
+            .background(brush = backgroundBrush),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -97,9 +96,7 @@ fun SkillsScreen() {
             SkillCategoryHeader("Languages", Icons.Outlined.Translate)
         }
         items(languages, key = { it.name }) { skill ->
-            StaggeredAnimatedItem(index = animationIndex++) {
-                SkillCard(skill = skill)
-            }
+            SkillCard(skill = skill)
         }
 
         // --- Web & Mobile Development Section ---
@@ -107,9 +104,7 @@ fun SkillsScreen() {
             SkillCategoryHeader("Web & Mobile Development", Icons.Outlined.PhoneAndroid)
         }
         items(webAndMobile, key = { it.name }) { skill ->
-            StaggeredAnimatedItem(index = animationIndex++) {
-                SkillCard(skill = skill)
-            }
+            SkillCard(skill = skill)
         }
 
         // --- CS Fundamentals Section ---
@@ -117,9 +112,7 @@ fun SkillsScreen() {
             SkillCategoryHeader("CS Fundamentals", Icons.Outlined.Book)
         }
         items(csFundamentals, key = { it.name }) { skill ->
-            StaggeredAnimatedItem(index = animationIndex++) {
-                SkillCard(skill = skill)
-            }
+            SkillCard(skill = skill)
         }
 
         // --- Tools & Platforms Section ---
@@ -127,33 +120,10 @@ fun SkillsScreen() {
             SkillCategoryHeader("Tools & Platforms", Icons.Outlined.Build)
         }
         items(toolsAndPlatforms, key = { it.name }) { skill ->
-            StaggeredAnimatedItem(index = animationIndex++) {
-                SkillCard(skill = skill)
-            }
+            SkillCard(skill = skill)
         }
     }
 }
-
-// Wrapper for handling staggered animation logic
-@Composable
-fun StaggeredAnimatedItem(index: Int, content: @Composable () -> Unit) {
-    var itemVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(100L + (index * 50L)) // Staggered delay
-        itemVisible = true
-    }
-    AnimatedVisibility(
-        visible = itemVisible,
-        enter = fadeIn(animationSpec = tween(durationMillis = 300)) +
-                slideInVertically(
-                    initialOffsetY = { it / 2 },
-                    animationSpec = tween(durationMillis = 300)
-                )
-    ) {
-        content()
-    }
-}
-
 
 // 4. UI for a Category Header (Enhanced with an Icon)
 @Composable
@@ -173,24 +143,52 @@ fun SkillCategoryHeader(title: String, icon: ImageVector) {
             text = title,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = Color.Black // Changed to Black for readability
+            color = Color.Black
         )
     }
 }
 
-// 5. UI for a single Skill Card (New "Frosted Glass" Design)
+// 5. UI for a single Skill Card (with press animations only)
 @Composable
-fun SkillCard(skill: Skill, modifier: Modifier = Modifier) {
-    val iconGradient = Brush.verticalGradient(
-        colors = listOf(LightPink, DarkPink)
+fun SkillCard(
+    skill: Skill,
+    modifier: Modifier = Modifier
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 1.05f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = "press_scale"
+    )
+    val pressElevation by animateDpAsState(
+        targetValue = if (isPressed) 12.dp else 4.dp,
+        animationSpec = tween(durationMillis = 150),
+        label = "press_elevation"
     )
 
+    val iconGradient = Brush.verticalGradient(colors = listOf(LightPink, DarkPink))
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                // Apply the press scale animation
+                scaleX = pressScale
+                scaleY = pressScale
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         shape = RoundedCornerShape(16.dp),
-        // New semi-transparent white background for "frosted glass" effect
-        colors = CardDefaults.cardColors(containerColor = White.copy(alpha = 0.7f)),
-        border = BorderStroke(1.dp, DarkPink.copy(alpha = 0.2f))
+        elevation = CardDefaults.cardElevation(defaultElevation = pressElevation),
+        colors = CardDefaults.cardColors(containerColor = White.copy(alpha = 0.8f)),
+        border = BorderStroke(1.dp, DarkPink.copy(alpha = if (isPressed) 0.8f else 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -216,7 +214,7 @@ fun SkillCard(skill: Skill, modifier: Modifier = Modifier) {
                 text = skill.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = Color.Black, // Changed to Black for readability
+                color = Color.Black,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
