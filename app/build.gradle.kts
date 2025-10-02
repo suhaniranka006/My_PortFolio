@@ -66,6 +66,8 @@ dependencies {
         implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0") // Corrected to latest stable
         implementation("androidx.compose.material:material-icons-extended") // NO version number needed
 
+
+
         // --- DELETE THESE CONFLICTING LINES ---
         // implementation("androidx.compose.material3:material3:1.3.0") // DELETE THIS DUPLICATE
         // implementation("androidx.compose.material:material-icons-extended:1.6.0") // DELETE THIS (the one above is correct)
