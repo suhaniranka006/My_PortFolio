@@ -1,19 +1,32 @@
 package com.example.my_portfolio.ui.screens
 
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.WorkHistory
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.my_portfolio.ui.theme.DarkPink
+import com.example.my_portfolio.ui.theme.LightPink
+import com.example.my_portfolio.ui.theme.White
+import kotlinx.coroutines.delay
 
 // 1. Data model for an experience item
 data class ExperienceItem(
@@ -56,63 +69,127 @@ val experienceList = listOf(
 // 3. The Main Screen Composable
 @Composable
 fun ExperienceScreen() {
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(White, LightPink, DarkPink)
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(vertical = 24.dp)
+            .background(brush = backgroundBrush),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        items(experienceList) { experience ->
-            ExperienceTimelineCard(experience = experience, isLastItem = experience == experienceList.last())
+        item {
+            Row(
+                modifier = Modifier.padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.WorkHistory,
+                    contentDescription = "Experience Icon",
+                    tint = DarkPink,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Work Experience",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+        }
+
+        itemsIndexed(experienceList) { index, experience ->
+            ExperienceTimelineCard(
+                experience = experience,
+                isLastItem = index == experienceList.lastIndex,
+                animationDelay = (index + 1) * 100L // Staggered delay for cascade effect
+            )
         }
     }
 }
 
-// 4. A Single Experience Card with a Timeline element
+// 4. A Single Experience Card with a Timeline element and 3D Flip Animation
 @Composable
-fun ExperienceTimelineCard(experience: ExperienceItem, isLastItem: Boolean) {
+fun ExperienceTimelineCard(experience: ExperienceItem, isLastItem: Boolean, animationDelay: Long) {
+    // --- 3D Flip-In Animation Logic ---
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(animationDelay)
+        isVisible = true
+    }
+
+    val rotationY by animateFloatAsState(
+        targetValue = if (isVisible) 0f else -90f,
+        animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing),
+        label = "flip_rotation"
+    )
+
+    val alpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 400),
+        label = "flip_alpha"
+    )
+
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                this.rotationY = rotationY
+                this.alpha = alpha
+            }
     ) {
         // Timeline visuals (line and dot)
         Column(
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(20.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(LightPink, DarkPink)
+                        )
+                    )
             )
             if (!isLastItem) {
                 Divider(
                     modifier = Modifier
                         .width(2.dp)
                         .weight(1f),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    color = DarkPink.copy(alpha = 0.5f)
                 )
             }
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Experience details
-        Column(modifier = Modifier.padding(bottom = if (!isLastItem) 24.dp else 0.dp)) {
-            Text(
-                text = experience.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${experience.company} | ${experience.dates}",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-            )
-            experience.responsibilities.forEach { responsibility ->
-                ResponsibilityText(text = responsibility)
+        // Experience details Card
+        Card(
+            modifier = Modifier.padding(bottom = if (!isLastItem) 24.dp else 0.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = White.copy(alpha = 0.7f)),
+            border = BorderStroke(1.dp, DarkPink.copy(alpha = 0.2f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = experience.title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DarkPink
+                )
+                Text(
+                    text = "${experience.company} | ${experience.dates}",
+                    fontSize = 14.sp,
+                    color = Color.Black.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                )
+                experience.responsibilities.forEach { responsibility ->
+                    ResponsibilityText(text = responsibility)
+                }
             }
         }
     }
@@ -123,17 +200,17 @@ fun ExperienceTimelineCard(experience: ExperienceItem, isLastItem: Boolean) {
 fun ResponsibilityText(text: String) {
     Row(
         modifier = Modifier.padding(bottom = 6.dp),
-        verticalAlignment = androidx.compose.ui.Alignment.Top
+        verticalAlignment = Alignment.Top
     ) {
         Text(
             text = "• ",
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(top = 2.dp) // Align bullet with text
+            color = Color.Black.copy(alpha = 0.8f),
+            modifier = Modifier.padding(top = 2.dp)
         )
         Text(
             text = text,
             fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color.Black.copy(alpha = 0.8f),
         )
     }
 }
