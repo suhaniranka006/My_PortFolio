@@ -3,8 +3,8 @@ package com.example.my_portfolio
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +39,6 @@ import com.example.my_portfolio.ui.theme.DarkPink
 import com.example.my_portfolio.ui.theme.LightPink
 import com.example.my_portfolio.ui.theme.White
 import kotlinx.coroutines.delay
-
 
 @Composable
 fun ContactTab() {
@@ -52,8 +52,8 @@ fun ContactTab() {
     val yourWhatsApp = "+917851976119"
     val yourLinkedIn = "https://www.linkedin.com/in/suhani-ranka-a146a4253/"
     val yourGitHub = "https://github.com/suhaniranka006"
-    val yourLeetCode = "https://leetcode.com/u/suhani_jain_006/" // Added LeetCode URL
-    val yourGfg = "https://www.geeksforgeeks.org/user/suhanijavtd5/"    // Added GFG URL
+    val yourLeetCode = "https://leetcode.com/u/suhani_jain_006/"
+    val yourGfg = "https://www.geeksforgeeks.org/user/suhanijavtd5/"
     val resumeUrl = "https://drive.google.com/uc?export=download&id=1eMfJlFWwFoZ3RCjYxiH9CYYM6ts330Yd"
 
     var visible by remember { mutableStateOf(false) }
@@ -63,7 +63,8 @@ fun ContactTab() {
         colors = listOf(Color.Black, Color(0xFF1A1A1A))
     )
 
-    // --- Contact Items ---
+    // --- Contact Items Data ---
+    // Make sure you have added these vector assets to your res/drawable folder
     val contactItems = listOf(
         Triple(Icons.Default.Email, "Email", yourEmail),
         Triple(R.drawable.linkedin_pic, "LinkedIn", "Connect with me"),
@@ -92,13 +93,35 @@ fun ContactTab() {
                     Image(
                         painter = painterResource(id = R.drawable.profile_pic),
                         contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(120.dp)
                             .clip(CircleShape)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(text = yourName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text(text = yourTitle, fontSize = 16.sp, color = Color.LightGray)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Typewriter Effect Logic
+                    var displayedTitle by remember { mutableStateOf("") }
+                    var cursorVisible by remember { mutableStateOf(true) }
+                    LaunchedEffect(yourTitle) {
+                        yourTitle.forEachIndexed { index, _ ->
+                            displayedTitle = yourTitle.substring(0, index + 1)
+                            delay(100)
+                        }
+                        while (true) {
+                            cursorVisible = !cursorVisible
+                            delay(500)
+                        }
+                    }
+
+                    Text(
+                        text = displayedTitle + if (cursorVisible) "_" else "",
+                        fontSize = 16.sp,
+                        color = Color.LightGray,
+                        modifier = Modifier.height(24.dp) // Stable height for animation
+                    )
                 }
             }
         }
@@ -107,6 +130,7 @@ fun ContactTab() {
 
         // --- Contact Info Items ---
         items(contactItems.size) { index ->
+            val item = contactItems[index]
             var itemVisible by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
                 delay(200L + (index * 100L))
@@ -122,11 +146,13 @@ fun ContactTab() {
                         )
             ) {
                 ContactInfoItem(
-                    icon = contactItems[index].first,
-                    label = contactItems[index].second,
-                    value = contactItems[index].third,
+                    icon = item.first,
+                    label = item.second,
+                    value = item.third,
+                    // Pass true to enable animation for GitHub and WhatsApp
+                    isHighlighted = item.second == "GitHub" || item.second == "WhatsApp",
                     onClick = {
-                        val intent = when (contactItems[index].second) {
+                        val intent = when (item.second) {
                             "Email" -> Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$yourEmail"))
                             "LinkedIn" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourLinkedIn))
                             "GitHub" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourGitHub))
@@ -149,7 +175,7 @@ fun ContactTab() {
         item {
             var itemVisible by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
-                delay(1100L) // Adjusted delay for the last item
+                delay(1100L)
                 itemVisible = true
             }
             AnimatedVisibility(
@@ -157,7 +183,7 @@ fun ContactTab() {
                 enter = fadeIn(tween(500)) + slideInVertically(tween(500), initialOffsetY = { it / 2 })
             ) {
                 val buttonGradient = Brush.horizontalGradient(
-                    colors = listOf(DarkPink, LightPink, White)
+                    colors = listOf(DarkPink, LightPink, DarkPink)
                 )
                 Button(
                     onClick = {
@@ -186,18 +212,53 @@ fun ContactTab() {
 }
 
 @Composable
-fun ContactInfoItem(icon: Any, label: String, value: String, onClick: () -> Unit) {
+fun ContactInfoItem(icon: Any, label: String, value: String, isHighlighted: Boolean, onClick: () -> Unit) {
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (isPressed) 0.98f else 1f, label = "")
+    val pressScale by animateFloatAsState(targetValue = if (isPressed) 0.98f else 1f, label = "")
+
+    // --- Animation setup for highlighted items ---
+    val infiniteTransition = rememberInfiniteTransition(label = "highlight_transition")
+
+    val pulseScale by if (isHighlighted) {
+        infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.03f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "pulse_scale"
+        )
+    } else {
+        remember { mutableStateOf(1f) }
+    }
+
+    val borderShine by if (isHighlighted) {
+        infiniteTransition.animateColor(
+            initialValue = DarkPink.copy(alpha = 0.8f),
+            targetValue = LightPink.copy(alpha = 0.8f),
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "border_shine"
+        )
+    } else {
+        remember { mutableStateOf(DarkPink.copy(alpha = 0.3f)) }
+    }
 
     val cardGradient = Brush.horizontalGradient(
-        colors = listOf(Color.DarkGray.copy(alpha = 0.4f), Color.DarkGray.copy(alpha = 0.2f))
+        colors = listOf(DarkPink.copy(alpha = 0.15f), Color.Black.copy(alpha = 0.4f))
+    )
+
+    val iconGradient = Brush.verticalGradient(
+        colors = listOf(LightPink, DarkPink)
     )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(scale)
+            .scale(pressScale * pulseScale) // Combine press and pulse scales
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -210,22 +271,34 @@ fun ContactInfoItem(icon: Any, label: String, value: String, onClick: () -> Unit
             },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f))
+        border = BorderStroke(1.5.dp, borderShine) // Use the animated shine color
     ) {
-        Box(modifier = Modifier.background(brush = cardGradient)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush = cardGradient)
+        ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val iconModifier = Modifier.size(24.dp)
-                when (icon) {
-                    is ImageVector -> Icon(imageVector = icon, contentDescription = label, tint = Color.White, modifier = iconModifier)
-                    is Int -> Icon(painter = painterResource(id = icon), contentDescription = label, tint = Color.White, modifier = iconModifier)
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(brush = iconGradient),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val iconModifier = Modifier.size(22.dp)
+                    when (icon) {
+                        is ImageVector -> Icon(imageVector = icon, contentDescription = label, tint = White, modifier = iconModifier)
+                        is Int -> Icon(painter = painterResource(id = icon), contentDescription = label, tint = White, modifier = iconModifier)
+                    }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(text = label, color = Color.Gray, fontSize = 12.sp)
-                    Text(text = value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = label, color = Color.LightGray.copy(alpha = 0.8f), fontSize = 13.sp)
+                    Text(text = value, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
