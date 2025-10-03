@@ -2,17 +2,14 @@ package com.example.my_portfolio
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,15 +53,12 @@ fun ContactTab() {
     val yourGfg = "https://www.geeksforgeeks.org/user/suhanijavtd5/"
     val resumeUrl = "https://drive.google.com/uc?export=download&id=1eMfJlFWwFoZ3RCjYxiH9CYYM6ts330Yd"
 
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { visible = true }
-
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(Color.Black, Color(0xFF1A1A1A))
     )
 
     // --- Contact Items Data ---
-    // Make sure you have added these vector assets to your res/drawable folder
+    // Make sure you have added vector assets like 'ic_linkedin.xml' to your res/drawable folder
     val contactItems = listOf(
         Triple(Icons.Default.Email, "Email", yourEmail),
         Triple(R.drawable.linkedin_pic, "LinkedIn", "Connect with me"),
@@ -84,168 +78,139 @@ fun ContactTab() {
     ) {
         // --- Profile Header ---
         item {
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
-                        slideInVertically(animationSpec = tween(durationMillis = 500))
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.profile_pic),
-                        contentDescription = "Profile Picture",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = yourName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Spacer(modifier = Modifier.height(8.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(id = R.drawable.profile_pic),
+                    contentDescription = "Profile Picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = yourName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // Typewriter Effect Logic
-                    var displayedTitle by remember { mutableStateOf("") }
-                    var cursorVisible by remember { mutableStateOf(true) }
-                    LaunchedEffect(yourTitle) {
-                        yourTitle.forEachIndexed { index, _ ->
-                            displayedTitle = yourTitle.substring(0, index + 1)
-                            delay(100)
-                        }
-                        while (true) {
-                            cursorVisible = !cursorVisible
-                            delay(500)
-                        }
+                // --- Typewriter Effect Logic ---
+                var displayedTitle by remember { mutableStateOf("") }
+                var cursorVisible by remember { mutableStateOf(true) }
+
+                // Trigger the animation when the composable is first displayed
+                LaunchedEffect(yourTitle) {
+                    // Typing animation loop
+                    yourTitle.forEachIndexed { index, _ ->
+                        displayedTitle = yourTitle.substring(0, index + 1)
+                        delay(100) // Adjust typing speed here (in milliseconds)
                     }
 
-                    Text(
-                        text = displayedTitle + if (cursorVisible) "_" else "",
-                        fontSize = 16.sp,
-                        color = Color.LightGray,
-                        modifier = Modifier.height(24.dp) // Stable height for animation
-                    )
+                    // Blinking cursor loop after typing is done
+                    while (true) {
+                        cursorVisible = !cursorVisible
+                        delay(500) // Adjust cursor blink speed here
+                    }
                 }
-            }
-        }
 
-        item { Spacer(modifier = Modifier.height(32.dp)) }
-
-        // --- Contact Info Items ---
-        items(contactItems.size) { index ->
-            val item = contactItems[index]
-            var itemVisible by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) {
-                delay(200L + (index * 100L))
-                itemVisible = true
-            }
-
-            AnimatedVisibility(
-                visible = itemVisible,
-                enter = fadeIn(animationSpec = tween(durationMillis = 500, delayMillis = 100)) +
-                        slideInVertically(
-                            initialOffsetY = { it / 2 },
-                            animationSpec = tween(durationMillis = 500, delayMillis = 100)
-                        )
-            ) {
-                ContactInfoItem(
-                    icon = item.first,
-                    label = item.second,
-                    value = item.third,
-                    // Pass true to enable animation for GitHub and WhatsApp
-                    isHighlighted = item.second == "GitHub" || item.second == "WhatsApp",
-                    onClick = {
-                        val intent = when (item.second) {
-                            "Email" -> Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$yourEmail"))
-                            "LinkedIn" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourLinkedIn))
-                            "GitHub" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourGitHub))
-                            "LeetCode" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourLeetCode))
-                            "GeeksforGeeks" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourGfg))
-                            "WhatsApp" -> Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=$yourWhatsApp"))
-                            "Phone" -> Intent(Intent.ACTION_DIAL, Uri.parse("tel:$yourPhone"))
-                            else -> null
-                        }
-                        intent?.let { context.startActivity(it) }
-                    }
+                Text(
+                    text = displayedTitle + if (cursorVisible) "_" else "",
+                    fontSize = 16.sp,
+                    color = Color.LightGray,
+                    modifier = Modifier.height(24.dp) // Set a fixed height to prevent layout jumps
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
 
-        // --- Resume Button ---
+
+        // --- Highlighted Resume Button (now at the top) ---
         item {
-            var itemVisible by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) {
-                delay(1100L)
-                itemVisible = true
-            }
-            AnimatedVisibility(
-                visible = itemVisible,
-                enter = fadeIn(tween(500)) + slideInVertically(tween(500), initialOffsetY = { it / 2 })
-            ) {
-                val buttonGradient = Brush.horizontalGradient(
-                    colors = listOf(DarkPink, LightPink, DarkPink)
-                )
-                Button(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(resumeUrl))
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(55.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues()
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(brush = buttonGradient),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Outlined.Visibility, contentDescription = "View Icon", modifier = Modifier.size(24.dp), tint = Color.White)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(text = "View My Resume", fontSize = 16.sp, color = Color.White)
-                        }
-                    }
+            Spacer(modifier = Modifier.height(32.dp))
+            ResumeButton(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(resumeUrl))
+                    context.startActivity(intent)
                 }
-            }
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // --- Contact Info Items (no entry animation) ---
+        items(contactItems, key = { it.second }) { item ->
+            ContactInfoItem(
+                icon = item.first,
+                label = item.second,
+                value = item.third,
+                onClick = {
+                    val intent = when (item.second) {
+                        "Email" -> Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$yourEmail"))
+                        "LinkedIn" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourLinkedIn))
+                        "GitHub" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourGitHub))
+                        "LeetCode" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourLeetCode))
+                        "GeeksforGeeks" -> Intent(Intent.ACTION_VIEW, Uri.parse(yourGfg))
+                        "WhatsApp" -> Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=$yourWhatsApp"))
+                        "Phone" -> Intent(Intent.ACTION_DIAL, Uri.parse("tel:$yourPhone"))
+                        else -> null
+                    }
+                    intent?.let { context.startActivity(it) }
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun ContactInfoItem(icon: Any, label: String, value: String, isHighlighted: Boolean, onClick: () -> Unit) {
+fun ResumeButton(onClick: () -> Unit) {
+    // Subtle "breathing" animation for the button to draw attention
+    val infiniteTransition = rememberInfiniteTransition(label = "resume_button_transition")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "resume_scale"
+    )
+
+    val buttonGradient = Brush.horizontalGradient(
+        colors = listOf(DarkPink, LightPink, DarkPink)
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(55.dp)
+            .scale(scale), // Apply the breathing animation
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush = buttonGradient),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Visibility,
+                    contentDescription = "View Icon",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(text = "View My Resume", fontSize = 16.sp, color = Color.White)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ContactInfoItem(icon: Any, label: String, value: String, onClick: () -> Unit) {
     var isPressed by remember { mutableStateOf(false) }
     val pressScale by animateFloatAsState(targetValue = if (isPressed) 0.98f else 1f, label = "")
-
-    // --- Animation setup for highlighted items ---
-    val infiniteTransition = rememberInfiniteTransition(label = "highlight_transition")
-
-    val pulseScale by if (isHighlighted) {
-        infiniteTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.03f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "pulse_scale"
-        )
-    } else {
-        remember { mutableStateOf(1f) }
-    }
-
-    val borderShine by if (isHighlighted) {
-        infiniteTransition.animateColor(
-            initialValue = DarkPink.copy(alpha = 0.8f),
-            targetValue = LightPink.copy(alpha = 0.8f),
-            animationSpec = infiniteRepeatable(
-                animation = tween(1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "border_shine"
-        )
-    } else {
-        remember { mutableStateOf(DarkPink.copy(alpha = 0.3f)) }
-    }
 
     val cardGradient = Brush.horizontalGradient(
         colors = listOf(DarkPink.copy(alpha = 0.15f), Color.Black.copy(alpha = 0.4f))
@@ -258,7 +223,7 @@ fun ContactInfoItem(icon: Any, label: String, value: String, isHighlighted: Bool
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(pressScale * pulseScale) // Combine press and pulse scales
+            .scale(pressScale) // Only the press scale animation remains
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -271,7 +236,7 @@ fun ContactInfoItem(icon: Any, label: String, value: String, isHighlighted: Bool
             },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.5.dp, borderShine) // Use the animated shine color
+        border = BorderStroke(1.dp, DarkPink.copy(alpha = 0.3f))
     ) {
         Box(
             modifier = Modifier

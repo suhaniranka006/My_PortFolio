@@ -104,7 +104,7 @@ fun ExperienceScreen() {
             ExperienceTimelineCard(
                 experience = experience,
                 isLastItem = index == experienceList.lastIndex,
-                animationDelay = (index + 1) * 100L // Staggered delay for cascade effect
+                animationDelay = (index + 1) * 75L // FASTER: Staggered delay reduced
             )
         }
     }
@@ -122,13 +122,15 @@ fun ExperienceTimelineCard(experience: ExperienceItem, isLastItem: Boolean, anim
 
     val rotationY by animateFloatAsState(
         targetValue = if (isVisible) 0f else -90f,
-        animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing),
+        // FASTER: Animation duration reduced
+        animationSpec = tween(durationMillis = 300, easing = FastOutLinearInEasing),
         label = "flip_rotation"
     )
 
     val alpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 400),
+        // FASTER: Animation duration reduced
+        animationSpec = tween(durationMillis = 300),
         label = "flip_alpha"
     )
 
@@ -214,3 +216,4 @@ fun ResponsibilityText(text: String) {
         )
     }
 }
+

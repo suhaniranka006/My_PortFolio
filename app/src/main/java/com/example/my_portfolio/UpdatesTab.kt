@@ -1,9 +1,9 @@
 package com.example.my_portfolio
 
-import android.text.method.TextKeyListener
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -101,7 +101,7 @@ fun UpdatesTab() {
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(White,LightPink,DarkPink)
+        colors = listOf(White, LightPink, DarkPink)
     )
 
     LazyColumn(
@@ -118,10 +118,10 @@ fun UpdatesTab() {
 
             AnimatedVisibility(
                 visible = headerVisible,
-                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
+                enter = fadeIn(animationSpec = tween(durationMillis = 100)) +
                         slideInVertically(
                             initialOffsetY = { -it / 2 },
-                            animationSpec = tween(durationMillis = 500)
+                            animationSpec = tween(durationMillis = 100)
                         )
             ) {
                 Row(
@@ -136,10 +136,10 @@ fun UpdatesTab() {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "My Journey",
+                        text = "Update Timeline",
                         style = TextStyle(
                             brush = Brush.linearGradient(
-                                colors = listOf(Black,Black)
+                                colors = listOf(Black, Black)
                             ),
                             fontSize = 34.sp,
                             fontWeight = FontWeight.Bold,
@@ -153,16 +153,18 @@ fun UpdatesTab() {
         itemsIndexed(updates) { index, update ->
             var itemVisible by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
-                delay(100L + (index * 150L))
+                // FASTER: Reduced the stagger delay
+                delay(index * 50L)
                 itemVisible = true
             }
 
             AnimatedVisibility(
                 visible = itemVisible,
-                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
+                // FASTER: Reduced the animation duration
+                enter = fadeIn(animationSpec = tween(durationMillis = 100)) +
                         slideInVertically(
                             initialOffsetY = { it / 2 },
-                            animationSpec = tween(durationMillis = 500)
+                            animationSpec = tween(durationMillis = 100)
                         )
             ) {
                 TimelineItem(
@@ -170,8 +172,6 @@ fun UpdatesTab() {
                     isExpanded = expandedIndex == index,
                     isLastItem = index == updates.lastIndex,
                     onClick = {
-                        // Toggle expansion: if the same item is clicked, collapse it (set to null).
-                        // Otherwise, expand the new item.
                         expandedIndex = if (expandedIndex == index) null else index
                     }
                 )
@@ -190,7 +190,7 @@ fun TimelineItem(update: Update, isExpanded: Boolean, isLastItem: Boolean, onCli
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp) // Increased size
+                    .size(32.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
@@ -198,7 +198,7 @@ fun TimelineItem(update: Update, isExpanded: Boolean, isLastItem: Boolean, onCli
                 Icon(
                     imageVector = update.icon,
                     contentDescription = "Event Icon",
-                    modifier = Modifier.size(22.dp), // Increased size
+                    modifier = Modifier.size(22.dp),
                     tint = Color.White
                 )
             }
@@ -222,9 +222,10 @@ fun TimelineItem(update: Update, isExpanded: Boolean, isLastItem: Boolean, onCli
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(
-                // Animate the background color when expanded
+                // SMOOTHER: Added easing to the color animation
                 containerColor = animateColorAsState(
                     if (isExpanded) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.7f),
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                     label = "card_color_animation"
                 ).value
             )
@@ -233,8 +234,8 @@ fun TimelineItem(update: Update, isExpanded: Boolean, isLastItem: Boolean, onCli
                 modifier = Modifier
                     .clickable(onClick = onClick)
                     .padding(16.dp)
-                    .animateContentSize( // This is the magic for smooth expansion
-                        animationSpec = tween(durationMillis = 300)
+                    .animateContentSize( // SMOOTHER: Added easing for a more natural expansion
+                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
                     )
             ) {
                 Row(
@@ -259,7 +260,8 @@ fun TimelineItem(update: Update, isExpanded: Boolean, isLastItem: Boolean, onCli
                     // Animated Arrow Icon
                     val rotationAngle by animateFloatAsState(
                         targetValue = if (isExpanded) 90f else 0f,
-                        animationSpec = tween(durationMillis = 300),
+                        // SMOOTHER: Added easing to the arrow rotation
+                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                         label = "arrow_rotation"
                     )
                     Icon(
