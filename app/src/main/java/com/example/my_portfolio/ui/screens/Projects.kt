@@ -77,8 +77,9 @@ val projectList = listOf(
         technologies = listOf("Firebase", "Kotlin", "MVVM", "Android", "Google Maps SDK"),
         backgroundIcon = Icons.Outlined.PhoneAndroid,
         media = listOf(
-            MediaItem.Video(R.drawable.profile, R.raw.sample_video), // Replace thumbnail and video
-            MediaItem.Image(R.drawable.profile_pic) // Replace with your screenshot
+            MediaItem.Video(R.drawable.profile, R.raw.finalvideo), // Replace thumbnail and video
+            MediaItem.Image(R.drawable.profile_pic), // Replace with your screenshot
+         MediaItem.Image(R.drawable.profile_pic) // Replace with your screenshot
         )
     ),
     Project(
