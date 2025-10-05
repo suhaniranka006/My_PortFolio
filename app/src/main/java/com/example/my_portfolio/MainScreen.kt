@@ -152,7 +152,7 @@ fun HomeTab(navController: NavHostController) {
                 Image(
                     painter = painterResource(R.drawable.profile_pic),
                     contentDescription = "Profile Photo",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .size(140.dp)
                         .clip(CircleShape)
@@ -180,9 +180,9 @@ fun HomeTab(navController: NavHostController) {
                 // Top button
                 androidx.compose.animation.AnimatedVisibility(
                     visible = visibleStates[0].value,
-                    enter = fadeIn(animationSpec = tween(500)) +
-                            scaleIn(animationSpec = tween(500)) +
-                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(500))
+                    enter = fadeIn(animationSpec = tween(100)) +
+                            scaleIn(animationSpec = tween(100)) +
+                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(100))
                 ) {
                     Box(modifier = Modifier.offset(y = (-110).dp)) {
                         CircularHomeButton(buttons[0].first, buttons[0].second) {
@@ -194,9 +194,9 @@ fun HomeTab(navController: NavHostController) {
                 // Left button
                 androidx.compose.animation.AnimatedVisibility(
                     visible = visibleStates[1].value,
-                    enter = fadeIn(animationSpec = tween(500)) +
-                            scaleIn(animationSpec = tween(500)) +
-                            slideInHorizontally(initialOffsetX = { it / 2 }, animationSpec = tween(500))
+                    enter = fadeIn(animationSpec = tween(100)) +
+                            scaleIn(animationSpec = tween(100)) +
+                            slideInHorizontally(initialOffsetX = { it / 2 }, animationSpec = tween(100))
                 ) {
                     Box(modifier = Modifier.offset(x = (-110).dp)) {
                         CircularHomeButton(buttons[1].first, buttons[1].second) {
@@ -208,9 +208,9 @@ fun HomeTab(navController: NavHostController) {
                 // Right button
                 androidx.compose.animation.AnimatedVisibility(
                     visible = visibleStates[2].value,
-                    enter = fadeIn(animationSpec = tween(500)) +
-                            scaleIn(animationSpec = tween(500)) +
-                            slideInHorizontally(initialOffsetX = { -it / 2 }, animationSpec = tween(500))
+                    enter = fadeIn(animationSpec = tween(100)) +
+                            scaleIn(animationSpec = tween(100)) +
+                            slideInHorizontally(initialOffsetX = { -it / 2 }, animationSpec = tween(100))
                 ) {
                     Box(modifier = Modifier.offset(x = 110.dp)) {
                         CircularHomeButton(buttons[2].first, buttons[2].second) {
@@ -222,9 +222,9 @@ fun HomeTab(navController: NavHostController) {
                 // Bottom button
                 androidx.compose.animation.AnimatedVisibility(
                     visible = visibleStates[3].value,
-                    enter = fadeIn(animationSpec = tween(500)) +
-                            scaleIn(animationSpec = tween(500)) +
-                            slideInVertically(initialOffsetY = { -it / 2 }, animationSpec = tween(500))
+                    enter = fadeIn(animationSpec = tween(100)) +
+                            scaleIn(animationSpec = tween(100)) +
+                            slideInVertically(initialOffsetY = { -it / 2 }, animationSpec = tween(100))
                 ) {
                     Box(modifier = Modifier.offset(y = 110.dp)) {
                         CircularHomeButton(buttons[3].first, buttons[3].second) {
@@ -237,8 +237,8 @@ fun HomeTab(navController: NavHostController) {
 
 
         }
-        }
     }
+}
 
 
 
@@ -268,14 +268,4 @@ fun CircularHomeButton(title: String, icon: ImageVector, onClick: () -> Unit) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
+// fix profile pic circle is good but full picture is not there head is cut , reduce height of navigation bar make it standard , fix and faster animations , make smooth app and make it more attractcie
