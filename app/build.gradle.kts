@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.my_portfolio"
+    namespace = "com.suhani.portfolio"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.my_portfolio"
+        applicationId = "com.suhani.portfolio"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
